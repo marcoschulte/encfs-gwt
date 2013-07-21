@@ -18,6 +18,8 @@ package de.voot.encfsgwt.shared.mrpdaemon;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.gwt.core.client.Callback;
 
@@ -30,6 +32,8 @@ import de.voot.encfsgwt.shared.jre.InputStream;
  * such as copying, moving, deletion etc.
  */
 public class EncFSFile {
+
+	private static final Logger LOG = Logger.getLogger("de.voot.encfsgwt.shared.mrpdaemon.EncFSFile");
 
 	/**
 	 * Size in bytes of file header when file IV's are used (uniqueIV)
@@ -240,12 +244,18 @@ public class EncFSFile {
 				List<EncFSFile> result = new ArrayList<EncFSFile>(fileInfos.size());
 
 				for (EncFSFileInfo fileInfo : fileInfos) {
+					if (EncFSVolume.CONFIG_FILE_NAME.equals(fileInfo.getName())) {
+						continue;
+					}
+
 					String decodedFileName;
 					try {
 						decodedFileName = EncFSCrypto.decodeName(volume, fileInfo.getName(), dirName);
 					} catch (EncFSCorruptDataException e) {
+						LOG.log(Level.WARNING, "Skipping file <" + fileInfo.getName() + "> due to a corrupted data exception", e);
 						decodedFileName = null;
 					} catch (EncFSChecksumException e) {
+						LOG.log(Level.WARNING, "Skipping file <" + fileInfo.getName() + "> due to a checksum exception", e);
 						decodedFileName = null;
 					}
 
